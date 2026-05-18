@@ -4,40 +4,55 @@
  */
 package modelo;
 
+import java.time.LocalTime;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+
 
 public class RutinaDiaria extends Rutina {
-    private String horaInicio;
-    private String[] diasSemana;
-    public RutinaDiaria(String nombre, String horaInicio, String[] diasSemana) {
+    private LocalTime horaInicio;
+    private DayOfWeek[] diasSemana;
+
+    public RutinaDiaria(LocalTime horaInicio, DayOfWeek[] diasSemana, String nombre) {
         super(nombre);
         this.horaInicio = horaInicio;
         this.diasSemana = diasSemana;
     }
-
     @Override
-    public String getTipo() {
-        return "Diaria"; 
+    public String getTipo(){
+        return "Diaria";
     }
-    public String getDiasSemana(){
+    public boolean debeEjecutarseAhora(){
+        LocalTime ahora=LocalTime.now();
+        DayOfWeek hoy = LocalDate.now().getDayOfWeek();
+        boolean horaCoincide = ahora.getHour()== horaInicio.getHour()&&ahora.getMinute()==horaInicio.getMinute();
+        boolean diaCoincide=false;
+        for (DayOfWeek dia : diasSemana){
+            if(dia==hoy){
+                diaCoincide=true;
+                break;
+            }
+        }
+        return horaCoincide && diaCoincide;
+    }
+    public String getDiasSemana() {
         String resultado = "";
-        for (String dia: diasSemana){
-            resultado += dia + "";
-            
+        for (DayOfWeek dia : diasSemana) {
+            resultado += dia.toString() + " ";
         }
         return resultado.trim();
     }
-    
-    public String getHoraInicio(){
+    public LocalTime getHoraInicio(){
         return horaInicio;
     }
-    public void setHoraInicio(String horaInicio){
+    public void setHoraInicio(LocalTime horaInicio){
         this.horaInicio=horaInicio;
     }
-
-    @Override
+   public DayOfWeek[] getDiasArray() { 
+       return diasSemana; }
+       @Override
     public String toString() {
-                return super.toString() + " | Hora: " + horaInicio
-                + " | Días: " + getDiasSemana();// Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
+        return super.toString() + " | Hora: " + horaInicio+ " | Días: " + getDiasSemana();
     }
 
 }
