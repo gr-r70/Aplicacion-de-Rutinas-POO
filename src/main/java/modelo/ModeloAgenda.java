@@ -5,43 +5,72 @@
 package modelo;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  *
  * @author DAVID
  */
-public class ModeloAgenda {
-    
+
+
+public class ModeloAgenda implements IGestionable {
+
     private ArrayList<Rutina> rutinas;
-    
+
     public ModeloAgenda() {
-        
+
         rutinas = new ArrayList <> ();
     }
-    
-    public void agregar (Rutina rutina) {
-        
-        rutinas.add(rutina);
+    @Override
+    public void agregar(Rutina r){
+        rutinas.add(r);
     }
-    
-    public void eliminar(int indice) {
-        
-        if (indice >= 0 && indice < rutinas.size()) {
+    @Override
+    public void eliminar(int indice){
+        if (indice >= 0 && indice < rutinas.size()){
             rutinas.remove(indice);
         }
     }
-    public String listar(){
-        String texto="";
-        
+    @Override
+    public String listar() {
+        if (rutinas.isEmpty()) {
+            return "No hay rutinas registradas.";
+        }
+        String texto = "";
         for (Rutina rutina : rutinas) {
-            
             texto += rutina.toString() + "\n";
         }
-        
         return texto;
     }
-    
-    public ArrayList<Rutina> getRutinas(){
+    @Override public ArrayList<Rutina> getRutinas(){
         return rutinas;
+    }
+    public void ordernarPorNombre(){
+        rutinas.sort((r1, r2)->r1.getNombre().compareToIgnoreCase(r2.getNombre()));
+    }
+    public void ordenarPornNombreDesc(){
+        rutinas.sort((r1, r2)->r2.getNombre().compareToIgnoreCase(r1.getNombre()));
+    }
+    public void ordenarActivasPrimero(){
+        rutinas.sort((r1, r2)->{
+            if (r1.isActiva()&&!r2.isActiva()) return -1;
+            if(!r1.isActiva()&&r2.isActiva())return 1;
+            return 0;
+        });
+    }
+    public Rutina buscar (String nombre){
+        for (Rutina r: rutinas){
+            if(r.getNombre().equalsIgnoreCase(nombre)){
+                return r;
+            }
+        }
+        return null;
+    }
+    public int contarActivas(){
+        int count=0;
+        for (Rutina r : rutinas){
+            if (r.isActiva()) count++;
+        }
+        return count;
     }
 }
