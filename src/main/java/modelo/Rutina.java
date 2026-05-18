@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public abstract class Rutina {
     private static int totalCreadas=0;
-    
+    private int id;
     private String nombre;
     private boolean activa;
     private ArrayList<Paso> pasos;
@@ -19,6 +19,16 @@ public abstract class Rutina {
         this.pasos = new ArrayList<>();
         totalCreadas++;
     }
+
+    public Rutina(int id, String nombre, boolean activa, ArrayList<Paso> pasos) {
+        this.id = id;
+        this.nombre = nombre;
+        this.activa = activa;
+        this.pasos = pasos;
+    }
+    
+    
+    
     public abstract String getTipo();
     public void agregarPaso(String descripcion) {
         if (pasos.size() < Paso.MAX_PASOS) {
@@ -39,6 +49,9 @@ public abstract class Rutina {
         return totalCreadas;
     }
 
+    public int getId() {
+        return id;
+    }
 
     public String getNombre() {
         return nombre;
