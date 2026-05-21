@@ -33,29 +33,65 @@ public class ServicioRecordatorio {
             System.out.println("Servicio detenido");
         }
     }
-    private void verificarRutinas(){
-        ArrayList<Rutina> rutinas = agenda.getRutinas();
-        for(Rutina r: rutinas){
-            if(r.isActiva() && r instanceof RutinaDiaria ){
-                RutinaDiaria rd= (RutinaDiaria) r;
-                if (rd.debeEjecutarseAhora()){
-                    mostrarRecordatorio(rd);
-                }
+    private void verificarRutinas() {
+
+        for (Rutina rutina : agenda.getRutinas()) {
+
+            if (rutina instanceof RutinaDiaria rutinaDiaria
+                    && rutinaDiaria.isActiva()
+                    && rutinaDiaria.debeEjecutarseAhora()) {
+
+                String mensaje = "Ya es hora de realizar tu rutina "
+                        + rutinaDiaria.getNombre();
+
+                tts.leerTexto(mensaje);
+
+                mostrarRecordatorio(rutinaDiaria);
             }
         }
     }
-    private void mostrarRecordatorio(RutinaDiaria rutina){
+    private void mostrarRecordatorio(RutinaDiaria rutina) {
+
         Toolkit.getDefaultToolkit().beep();
-        SwingUtilities.invokeLater(()->{
-            JOptionPane.showMessageDialog(null,
-                "¡Es hora de tu rutina!\n\n" + rutina.getNombre()
-                + "\n\nPresiona OK para comenzar.",
-                "Recordatorio",
-                JOptionPane.INFORMATION_MESSAGE);
-        }
-        );
-        if (tts != null){
-            tts.leerTexto("Es hora de tu rutina: " +rutina.getNombre());
+
+        SwingUtilities.invokeLater(() ->{
+
+            JOptionPane.showMessageDialog(
+                    null,
+                    "¡Es hora de tu rutina!\n\n"
+                    + rutina.getNombre()
+                    + "\n\nPresiona OK para comenzar.",
+                    "Recordatorio",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+
+        if (tts != null) {
+
+           
+           
+            tts.leerTexto(
+                    "Ya es hora de realizar tu rutina "
+                    + rutina.getNombre()
+            );
+
+            
+            for (Paso paso : rutina.getPasos()) {
+
+                tts.leerTexto(
+                        "Paso "
+                        + paso.getNumero()
+                        + ". "
+                        + paso.getDescripcion()
+                );
+
+               
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
     }
 }
