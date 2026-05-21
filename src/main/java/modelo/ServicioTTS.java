@@ -4,49 +4,73 @@
  */
 package modelo;
 
-import java.io.IOException;
+import com.sun.speech.freetts.Voice;
+import com.sun.speech.freetts.VoiceManager;
 
-/**
- *
- * @author crstc
- */
 public class ServicioTTS implements IServicioTTS {
 
+   
+    private static final String NOMBRE_VOZ = "kevin16";
+
+    private Voice voice;
     private String idioma;
 
     public ServicioTTS(String idioma) {
+
         this.idioma = idioma;
+
+        inicializarVoz();
     }
 
-    @Override
+    private void inicializarVoz() {
+
+        System.setProperty(
+                "freetts.voices",
+                "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory"
+        );
+
+        VoiceManager voiceManager =
+                VoiceManager.getInstance();
+
+        voice = voiceManager.getVoice(NOMBRE_VOZ);
+
+        if (voice == null) {
+            throw new IllegalStateException(
+                    "No se encontró la voz: "
+                    + NOMBRE_VOZ
+            );
+        }
+
+        voice.allocate();
+    }
+
     public void leerTexto(String texto) {
-        try {
-            String os = System.getProperty("os.name").toLowerCase();
-            if (os.contains("win")) {
-                String comando = "powershell -Command \"Add-Type -AssemblyName System.Speech; "
-                        + "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer; "
-                        + "$s.Speak('" + texto + "')\"";
-                Runtime.getRuntime().exec(comando);
-            } else if (os.contains("mac")) {
-                Runtime.getRuntime().exec(new String[]{"say", texto});
-            } else {
-                Runtime.getRuntime().exec(new String[]{"espeak", "-v", idioma, texto});
-            }
-        }    catch (IOException e
 
-    
-        ){
-    System.out.println("Error al reproducir el siguiente texto: " + e.getMessage());
+        if (texto == null || texto.isBlank()) {
+            return;
+        }
+
+        synchronized (this) {
+            voice.speak(texto);
+        }
     }
-    }
+
+   
     @Override
-    public void detener(){
-        System.out.println("TTS detenido");
+    public void detener() {
+
+        if (voice != null
+                && voice.getAudioPlayer() != null) {
+
+            voice.getAudioPlayer().cancel();
+        }
     }
-    public String getIdioma(){
+
+    public String getIdioma() {
         return idioma;
     }
-    public void setIdioma(String idioma){
-        this.idioma=idioma;
+
+    public void setIdioma(String idioma) {
+        this.idioma = idioma;
     }
 }
