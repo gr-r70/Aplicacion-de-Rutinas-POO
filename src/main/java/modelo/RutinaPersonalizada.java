@@ -36,8 +36,15 @@ public class RutinaPersonalizada extends Rutina {
 
     @Override
     public String toString() {
-        return super.toString() + " | Categoria: " + categoria
-                + " | Nivel: " + nivel; // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
+          return super.toString()
+            + """
+              
+              Categoría: %s
+              Nivel: %d
+              """.formatted(
+                    categoria,
+                    nivel
+            );
     }
    
 }

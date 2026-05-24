@@ -52,7 +52,14 @@ public class RutinaDiaria extends Rutina {
        return diasSemana; }
        @Override
     public String toString() {
-        return super.toString() + " | Hora: " + horaInicio+ " | Días: " + getDiasSemana();
-    }
+         return super.toString()
+            + """
+              
+              Hora Inicio: %s
+              Días: %s
+              """.formatted(
+                    horaInicio,
+                    getDiasSemana()
+            ); }
 
 }
