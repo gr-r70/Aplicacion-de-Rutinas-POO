@@ -33,15 +33,39 @@ public class ModeloAgenda implements IGestionable {
     }
     @Override
     public String listar() {
-        if (rutinas.isEmpty()) {
-            return "No hay rutinas registradas.";
-        }
-        String texto = "";
-        for (Rutina rutina : rutinas) {
-            texto += rutina.toString() + "\n";
-        }
-        return texto;
+
+    if (rutinas.isEmpty()) {
+
+        return """
+               
+               NO HAY RUTINAS REGISTRADAS
+               
+               """;
     }
+
+    StringBuilder sb = new StringBuilder();
+
+    sb.append("""
+              
+                    LISTA DE RUTINAS
+              
+
+              """);
+
+    for (int i = 0; i < rutinas.size(); i++) {
+
+        sb.append("[")
+          .append(i)
+          .append("]\n");
+
+        sb.append(rutinas.get(i))
+          .append("\n");
+
+        sb.append("----------------------------------\n");
+    }
+
+    return sb.toString();
+}
     @Override public ArrayList<Rutina> getRutinas(){
         return rutinas;
     }

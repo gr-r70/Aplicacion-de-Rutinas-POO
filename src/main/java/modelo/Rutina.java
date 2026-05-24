@@ -7,11 +7,12 @@ package modelo;
 import java.util.ArrayList;
 
 public abstract class Rutina {
-    private static int totalCreadas=0;
+    private static int totalCreadas = 0;
     private int id;
     private String nombre;
     private boolean activa;
     private ArrayList<Paso> pasos;
+    private int indicePasoActual = 0;
 
     public Rutina(String nombre) {
         this.nombre = nombre;
@@ -27,56 +28,45 @@ public abstract class Rutina {
         this.pasos = pasos;
     }
     
-    
-    
     public abstract String getTipo();
+
     public void agregarPaso(String descripcion) {
         if (pasos.size() < Paso.MAX_PASOS) {
             pasos.add(new Paso(pasos.size() + 1, descripcion));
         }
     }
-    public Paso getPaso(int indice){
-        if(indice >= 0 && indice<pasos.size()){
-            return pasos.get(indice);
-        }
-        return null;
-    }
-    public int cantidadPasos(){
-        return pasos.size();
+
+    public int getIndicePasoActual() {
+        return indicePasoActual;
     }
 
-    public static int getTotalCreadas() {
-        return totalCreadas;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public boolean isActiva() {
-        return activa;
-    }
-
-    public void setActiva(boolean activa) {
-        this.activa = activa;
+    public void setIndicePasoActual(int indicePasoActual) {
+        this.indicePasoActual = indicePasoActual;
     }
 
     public ArrayList<Paso> getPasos() {
         return pasos;
     }
 
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+    public String getNombre() { return nombre; }
+    
+    public boolean isActiva() { return activa; }
+    
+   
+    public void setActiva(boolean activa) {
+        this.activa = activa;
+    }
+    // --------------------------------------------------------------
+
     @Override
     public String toString() {
-        return getTipo() + " | " + nombre + " | Activa: " + activa
-                + " | Pasos: " + pasos.size(); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
+        return """
+               Tipo: %s
+               Nombre: %s
+               Estado: %s
+               Pasos: %d
+               """.formatted(getTipo(), nombre, activa ? "Activa" : "Inactiva", pasos.size());
     }
-   
 }

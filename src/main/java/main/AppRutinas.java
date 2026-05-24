@@ -4,14 +4,18 @@
 
 package main;
 
-import vista.VentanaPrincipal;
+import vista.VentanaPrincipalGUI;
 
 public class AppRutinas {
 
-    public static void main(String[] args) {
+    public static void main(String args[]) {
 
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            new VentanaPrincipal();
+        java.awt.EventQueue.invokeLater(new Runnable() {
+
+            public void run() {
+
+                new VentanaPrincipalGUI().setVisible(true);
+            }
         });
     }
 }

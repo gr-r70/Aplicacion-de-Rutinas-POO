@@ -9,60 +9,42 @@ import com.sun.speech.freetts.VoiceManager;
 
 public class ServicioTTS implements IServicioTTS {
 
-   
-    private static final String NOMBRE_VOZ = "kevin16";
-
-    private Voice voice;
+    private Voice voice; // Se mantiene por compatibilidad, aunque usaremos el motor de sistema
     private String idioma;
+    private Process procesoVoz;
 
     public ServicioTTS(String idioma) {
-
         this.idioma = idioma;
-
-        inicializarVoz();
+        // Ya no inicializamos FreeTTS (Kevin) porque no habla español
     }
 
-    private void inicializarVoz() {
-
-        System.setProperty(
-                "freetts.voices",
-                "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory"
-        );
-
-        VoiceManager voiceManager =
-                VoiceManager.getInstance();
-
-        voice = voiceManager.getVoice(NOMBRE_VOZ);
-
-        if (voice == null) {
-            throw new IllegalStateException(
-                    "No se encontró la voz: "
-                    + NOMBRE_VOZ
-            );
-        }
-
-        voice.allocate();
-    }
-
+    @Override
     public void leerTexto(String texto) {
-
         if (texto == null || texto.isBlank()) {
             return;
         }
 
-        synchronized (this) {
-            voice.speak(texto);
-        }
+        // Usamos un hilo para que la interfaz no se bloquee mientras habla
+        new Thread(() -> {
+            try {
+                // Comando de PowerShell que usa la voz de Windows (que sí está en español)
+                String comando = "Add-Type -AssemblyName System.Speech; " +
+                                 "$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer; " +
+                                 "$speak.Speak('" + texto + "')";
+                
+                ProcessBuilder pb = new ProcessBuilder("powershell.exe", "-Command", comando);
+                procesoVoz = pb.start();
+                procesoVoz.waitFor(); // Espera a que termine de hablar
+            } catch (Exception e) {
+                System.err.println("Error al reproducir voz en español: " + e.getMessage());
+            }
+        }).start();
     }
 
-   
     @Override
     public void detener() {
-
-        if (voice != null
-                && voice.getAudioPlayer() != null) {
-
-            voice.getAudioPlayer().cancel();
+        if (procesoVoz != null && procesoVoz.isAlive()) {
+            procesoVoz.destroy(); // Detiene el proceso de PowerShell inmediatamente
         }
     }
 
