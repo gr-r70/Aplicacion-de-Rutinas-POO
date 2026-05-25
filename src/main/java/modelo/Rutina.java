@@ -39,7 +39,6 @@ public abstract class Rutina {
     public int getIndicePasoActual() {
         return indicePasoActual;
     }
-
     public void setIndicePasoActual(int indicePasoActual) {
         this.indicePasoActual = indicePasoActual;
     }
@@ -47,19 +46,16 @@ public abstract class Rutina {
     public ArrayList<Paso> getPasos() {
         return pasos;
     }
-
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public String getNombre() { return nombre; }
-    
-    public boolean isActiva() { return activa; }
-
     public void setPasos(ArrayList<Paso> pasos) {
         this.pasos = pasos;
     }
     
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
     
-   
+    public String getNombre() { return nombre; }
+    
+    public boolean isActiva() { return activa; }
     public void setActiva(boolean activa) {
         this.activa = activa;
     }
