@@ -172,56 +172,72 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
     }
 
     private void guardarRutina() {
+
         String nombre = txtNombre.getText();
         String categoria = txtCategoria.getText();
         String nivelStr = txtNivel.getText();
         String tipo = comboTipo.getSelectedItem().toString();
 
         if (nombre.isBlank()) {
-            JOptionPane.showMessageDialog(this, "El nombre es obligatorio");
+            JOptionPane.showMessageDialog(this,
+                    "El nombre es obligatorio");
             return;
         }
 
         try {
-            int nivel = nivelStr.isBlank() ? 1 : Integer.parseInt(nivelStr);
+
+            int nivel = nivelStr.isBlank()
+                    ? 1
+                    : Integer.parseInt(nivelStr);
+
+            String horaTexto = txtHora.getText();
+            String diaTexto = comboDia.getSelectedItem().toString();
+
+            LocalTime hora = LocalTime.parse(horaTexto);
+
+            DayOfWeek dia = switch (diaTexto) {
+                case "Lunes" ->DayOfWeek.MONDAY;
+                case "Martes" ->DayOfWeek.TUESDAY;
+                case "Miércoles" ->DayOfWeek.WEDNESDAY;
+                case "Jueves" ->DayOfWeek.THURSDAY;
+                case "Viernes" ->DayOfWeek.FRIDAY;
+                case "Sábado" ->DayOfWeek.SATURDAY;
+                default ->DayOfWeek.SUNDAY;
+            };
+
             Rutina nueva;
 
             if (tipo.equals("Diaria")) {
-                String horaTexto = txtHora.getText();
-                String diaTexto = comboDia.getSelectedItem().toString();
-                LocalTime hora = LocalTime.parse(horaTexto);
-                DayOfWeek dia = switch (diaTexto) {
-                    case "Lunes" ->
-                        DayOfWeek.MONDAY;
-                    case "Martes" ->
-                        DayOfWeek.TUESDAY;
-                    case "Miércoles" ->
-                        DayOfWeek.WEDNESDAY;
-                    case "Jueves" ->
-                        DayOfWeek.THURSDAY;
-                    case "Viernes" ->
-                        DayOfWeek.FRIDAY;
-                    case "Sábado" ->
-                        DayOfWeek.SATURDAY;
-                    default ->
-                        DayOfWeek.SUNDAY;
-                };
 
-                nueva = new RutinaDiaria(hora, new DayOfWeek[]{dia}, nombre);
+                nueva = new RutinaDiaria(hora,new DayOfWeek[]{dia},nombre);
 
             } else {
-                nueva = new RutinaPersonalizada(nombre, categoria, nivel);
+
+                nueva = new RutinaPersonalizada( nombre,categoria, nivel,hora,new DayOfWeek[]{dia});
             }
 
             if (controlador.agregarRutina(nueva)) {
+
                 actualizarTabla();
-                JOptionPane.showMessageDialog(this, "¡Guardado con éxito!");
+
+                JOptionPane.showMessageDialog(this,
+                        "¡Guardado con éxito!");
+
                 txtNombre.setText("");
                 txtCategoria.setText("");
                 txtNivel.setText("");
+                txtHora.setText("");
             }
+
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "El nivel debe ser un número.");
+
+            JOptionPane.showMessageDialog(this,
+                    "El nivel debe ser un número.");
+
+        } catch (Exception e) {
+
+            JOptionPane.showMessageDialog(this,
+                    "Hora inválida. Usa formato HH:mm");
         }
     }
 
@@ -256,6 +272,30 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
         for (Rutina r : modelo.getRutinas()) {
             String cat = "-", niv = "-", hora = "-", dia = "-";
             if (r instanceof RutinaPersonalizada rp) {
+                hora = rp.getHoraInicio().toString().substring(0, 5);
+
+                if (rp.getDias().length > 0) {
+
+                    DayOfWeek d = rp.getDias()[0];
+
+                    dia = switch (d) {
+
+                        case MONDAY ->
+                            "Lunes";
+                        case TUESDAY ->
+                            "Martes";
+                        case WEDNESDAY ->
+                            "Miércoles";
+                        case THURSDAY ->
+                            "Jueves";
+                        case FRIDAY ->
+                            "Viernes";
+                        case SATURDAY ->
+                            "Sábado";
+                        default ->
+                            "Domingo";
+                    };
+                }
                 cat = rp.getCategoria();
                 niv = String.valueOf(rp.getNivel());
             } else if (r instanceof RutinaDiaria rd) {
