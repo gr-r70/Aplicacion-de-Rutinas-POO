@@ -53,6 +53,11 @@ public abstract class Rutina {
     public String getNombre() { return nombre; }
     
     public boolean isActiva() { return activa; }
+
+    public void setPasos(ArrayList<Paso> pasos) {
+        this.pasos = pasos;
+    }
+    
     
    
     public void setActiva(boolean activa) {

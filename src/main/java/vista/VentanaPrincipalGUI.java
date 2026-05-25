@@ -2,7 +2,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-
 package vista;
 
 import controlador.ControladorRutinas;
@@ -18,21 +17,25 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
     private ControladorRutinas controlador;
     private DefaultTableModel modeloTabla;
     private ServicioTTS tts;
+    private RutinaDAO rutinaDAO;
 
     public VentanaPrincipalGUI() {
         initComponents();
         modelo = new ModeloAgenda();
         controlador = new ControladorRutinas(modelo);
         modeloTabla = (DefaultTableModel) tablaRutinas.getModel();
-        
-       
+        rutinaDAO = new RutinaDAO();
+
         try {
-            tts = new ServicioTTS("en-US");
+            tts = new ServicioTTS("es-ES");
         } catch (Exception e) {
             System.out.println("Error al iniciar TTS: " + e.getMessage());
         }
 
-       
+        IServicioTTS servicioTTS = new ServicioTTS("es-");
+        ServicioRecordatorio recordatorio = new ServicioRecordatorio(modelo, servicioTTS);
+        recordatorio.iniciar();
+
         controlador.cargarDesdeBD();
         configurarEventos();
         actualizarTabla();
@@ -42,8 +45,11 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
         btnGuardar.addActionListener(e -> guardarRutina());
         btnEliminar.addActionListener(e -> eliminarRutina());
         btnLeer.addActionListener(e -> leerRutina());
+        btnAgregarPaso.addActionListener(e -> agregarPaso());
         btnDetener.addActionListener(e -> {
-            if (tts != null) tts.detener();
+            if (tts != null) {
+                tts.detener();
+            }
         });
 
         btnSiguiente.addActionListener(e -> {
@@ -70,7 +76,7 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
             int actual = r.getIndicePasoActual() + 1;
             int total = r.getPasos().size();
             String desc = r.getPasos().get(r.getIndicePasoActual()).getDescripcion();
-            
+
             lblEstadoPasos.setText("Paso " + actual + " de " + total + ": " + desc);
 
             // Ejecutar voz en un hilo separado para no congelar la ventana
@@ -79,6 +85,57 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
             }
         } else {
             lblEstadoPasos.setText("Sin pasos configurados.");
+        }
+    }
+
+    private void agregarPaso() {
+
+        int fila = tablaRutinas.getSelectedRow();
+
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this,
+                    "Selecciona una rutina primero");
+            return;
+        }
+
+        String descripcion = JOptionPane.showInputDialog(this,
+                "Descripción del paso:");
+
+        if (descripcion == null || descripcion.isBlank()) {
+            JOptionPane.showMessageDialog(this,
+                    "La descripción no puede estar vacía.");
+            return;
+        }
+
+        Rutina r = modelo.getRutinas().get(fila);
+
+        if (r.getPasos().size() >= Paso.MAX_PASOS) {
+
+            JOptionPane.showMessageDialog(this,
+                    "La rutina ya tiene el máximo de "
+                    + Paso.MAX_PASOS + " pasos.");
+
+            return;
+        }
+
+        Paso nuevoPaso = new Paso(
+                r.getPasos().size() + 1,
+                descripcion
+        );
+
+        r.getPasos().add(nuevoPaso);
+
+        boolean guardado = rutinaDAO.guardarPaso(r.getId(), nuevoPaso);
+
+        if (guardado) {
+
+            JOptionPane.showMessageDialog(this,
+                    "Paso guardado correctamente.");
+
+        } else {
+
+            JOptionPane.showMessageDialog(this,
+                    "Error al guardar el paso en la BD.");
         }
     }
 
@@ -98,16 +155,11 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
             Rutina nueva;
 
             if (tipo.equals("Diaria")) {
-                LocalTime horaSimplificada = LocalTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
-                nueva = new RutinaDiaria(LocalTime.now(), new DayOfWeek[]{DayOfWeek.MONDAY}, nombre);
+                nueva = new RutinaDiaria(LocalTime.now(),
+                        new DayOfWeek[]{DayOfWeek.MONDAY}, nombre);
             } else {
                 nueva = new RutinaPersonalizada(nombre, categoria, nivel);
             }
-
-            // Agregamos pasos para que el TTS tenga qué leer
-            nueva.agregarPaso("Prepare your equipment");
-            nueva.agregarPaso("Start the main exercise");
-            nueva.agregarPaso("Finish and stretch");
 
             if (controlador.agregarRutina(nueva)) {
                 actualizarTabla();
@@ -130,19 +182,21 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
 
     private void leerRutina() {
         int fila = tablaRutinas.getSelectedRow();
-        if (fila != -1) {
-            Rutina r = modelo.getRutinas().get(fila);
-            
-            // Si la rutina viene de la BD sin pasos, le inyectamos unos
-            if (r.getPasos().isEmpty()) {
-                r.agregarPaso("Iniciando rutina de " + r.getNombre());
-                r.agregarPaso("Realizando actividad");
-                r.agregarPaso("Fin de la rutina");
-            }
-            
-            r.setIndicePasoActual(0);
-            actualizarLabelEstado(r);
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona una rutina primero.");
+            return;
         }
+
+        Rutina r = modelo.getRutinas().get(fila);
+
+        if (r.getPasos().isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Esta rutina no tiene pasos. Agrega pasos primero.");
+            return;
+        }
+
+        r.setIndicePasoActual(0);
+        actualizarLabelEstado(r);
     }
 
     private void actualizarTabla() {
@@ -157,11 +211,16 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
             }
 
             modeloTabla.addRow(new Object[]{
-                r.getId(), r.getNombre(), r.getTipo(), cat, niv, hora, "Ver Detalle", "Activa"
+                r.getId(),
+                r.getNombre(),
+                r.getTipo(),
+                cat,
+                niv,
+                hora,
+                r.isActiva() ? "Activa" : "Inactiva"
             });
-        }    
+        }
     }
-   
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -193,6 +252,7 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
         txtCategoria = new javax.swing.JTextField();
         lblNivel = new javax.swing.JLabel();
         txtNivel = new javax.swing.JTextField();
+        btnAgregarPaso = new javax.swing.JButton();
         panelCentral = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         tablaRutinas = new javax.swing.JTable();
@@ -309,6 +369,9 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
 
         txtNivel.setName("txtNivel"); // NOI18N
 
+        btnAgregarPaso.setText("Agregar Paso");
+        btnAgregarPaso.setName("btnEliminar"); // NOI18N
+
         javax.swing.GroupLayout panelMenuLayout = new javax.swing.GroupLayout(panelMenu);
         panelMenu.setLayout(panelMenuLayout);
         panelMenuLayout.setHorizontalGroup(
@@ -321,9 +384,10 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
                             .addGroup(panelMenuLayout.createSequentialGroup()
                                 .addComponent(lblMenu, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18))
-                            .addGroup(panelMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(panelMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                 .addComponent(btnGuardar)
-                                .addComponent(btnEliminar))))
+                                .addComponent(btnEliminar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnAgregarPaso, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                     .addGroup(panelMenuLayout.createSequentialGroup()
                         .addGap(25, 25, 25)
                         .addGroup(panelMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -344,11 +408,13 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
             .addGroup(panelMenuLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(lblMenu)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnGuardar)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnEliminar)
-                .addGap(31, 31, 31)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnAgregarPaso)
+                .addGap(26, 26, 26)
                 .addGroup(panelMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblNombre)
                     .addComponent(txtNombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -377,7 +443,7 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
 
             },
             new String [] {
-                "ID", "Nombre", "Tipo", "Categoria", "Nivel", "Hora", "Dias", "Estado"
+                "ID", "Nombre", "Tipo", "Categoria", "Nivel", "Hora", "Estado"
             }
         ));
         tablaRutinas.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
@@ -445,6 +511,7 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAgregarPaso;
     private javax.swing.JButton btnAnterior;
     private javax.swing.JButton btnDetener;
     private javax.swing.JButton btnEliminar;
