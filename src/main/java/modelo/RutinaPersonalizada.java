@@ -4,15 +4,23 @@
  */
 package modelo;
 
+import java.time.LocalTime;
+import java.time.DayOfWeek;
+
 public class RutinaPersonalizada extends Rutina {
+
     private String categoria;
     private int nivel;
-        public RutinaPersonalizada(String nombre, String categoria, int nivel) {
-        super(nombre);
-        this.categoria = categoria;
-        this.nivel = nivel;
-    }
+    private LocalTime horaInicio;
+    private DayOfWeek[] dias;
 
+public RutinaPersonalizada(String nombre, String categoria, int nivel, LocalTime horaInicio, DayOfWeek[] dias) {
+    super(nombre);
+    this.categoria = categoria;
+    this.nivel = nivel;
+    this.horaInicio = horaInicio;
+    this.dias = dias;
+}
     @Override
     public String getTipo() {
         return "Personalizada"; // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
@@ -34,17 +42,24 @@ public class RutinaPersonalizada extends Rutina {
         this.nivel = nivel;
     }
 
+    public LocalTime getHoraInicio() {
+        return horaInicio;
+    }
+
+    public DayOfWeek[] getDias() {
+        return dias;
+    }
+
     @Override
     public String toString() {
-          return super.toString()
-            + """
-              
-              Categoría: %s
-              Nivel: %d
-              """.formatted(
-                    categoria,
-                    nivel
-            );
+
+        return super.toString()
+                + """
+          
+          Categoría: %s
+          Nivel: %d
+          Hora Inicio: %s
+          """.formatted(categoria,nivel,horaInicio);
     }
-   
+
 }
