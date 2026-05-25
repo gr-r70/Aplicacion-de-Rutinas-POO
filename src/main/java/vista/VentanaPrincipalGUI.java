@@ -226,9 +226,13 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
             }
 
             if (controlador.agregarRutina(nueva)) {
+                
+                ArchivoTexto.guardarRutinaTXT(nueva);
 
                 actualizarTabla();
 
+                
+                
                 JOptionPane.showMessageDialog(this,
                         "¡Guardado con éxito!");
 
