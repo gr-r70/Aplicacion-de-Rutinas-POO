@@ -20,6 +20,10 @@ public class Paso {
     public void marcarCompleto(){
         this.completado=true;
         }
+    
+    public void setCompletado(boolean completado){
+        this.completado=completado;
+    }
 
     public int getNumero() {
             return numero;
