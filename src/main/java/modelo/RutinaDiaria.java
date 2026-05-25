@@ -50,6 +50,10 @@ public class RutinaDiaria extends Rutina {
     }
    public DayOfWeek[] getDiasArray() { 
        return diasSemana; }
+   public DayOfWeek[] getDias() {
+    return diasSemana;
+}
+   
        @Override
     public String toString() {
          return super.toString()
