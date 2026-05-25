@@ -14,10 +14,31 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Clase encargada de gestionar las operaciones de persistencia
+ * de las rutinas y pasos en la base de datos.
+ * Permite guardar, editar, eliminar y consultar rutinas
+ * junto con sus pasos asociados.
+ * 
+ * Utiliza JDBC para la conexión con MySQL mediante
+ * la clase ConexionDB.
+ */
 public class RutinaDAO {
-
+    /**
+     * Formateador utilizado para convertir objetos LocalTime
+     * al formato HH:mm:ss antes de almacenarlos en la base de datos.
+     */
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
 
+     /**
+     * Guarda una rutina en la base de datos.
+     * Dependiendo del tipo de rutina, almacena
+     * la información correspondiente.
+     *
+     * @param rutina rutina que será almacenada.
+     * @return true si la rutina fue guardada correctamente,
+     * false en caso contrario.
+     */
     public boolean guardarRutina(Rutina rutina) {
         String sql = "INSERT INTO rutinas (nombre, activa, tipo, hora_inicio, dias_semana, categoria, nivel) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -95,7 +116,12 @@ public class RutinaDAO {
             return false;
         }
     }
-
+    
+    /**
+     * Guarda todos los pasos pertenecientes a una rutina.
+     *
+     * @param rutina rutina cuyos pasos serán almacenados.
+     */
     private void guardarPasos(Rutina rutina) {
         System.out.println(
                 "Pasos a guardar: "
@@ -129,6 +155,12 @@ public class RutinaDAO {
         }
     }
 
+    /**
+     * Obtiene todas las rutinas almacenadas
+     * en la base de datos junto con sus pasos.
+     *
+     * @return lista de rutinas registradas.
+     */
     public List<Rutina> obtenerRutinas() {
         List<Rutina> lista = new ArrayList<>();
         String sql = "SELECT * FROM rutinas";
@@ -176,7 +208,16 @@ public class RutinaDAO {
         }
         return lista;
     }
-
+    
+    /**
+     * Edita la información de una rutina existente
+     * en la base de datos.
+     *
+     * @param id identificador de la rutina a editar.
+     * @param rutina rutina con los nuevos datos.
+     * @return true si la edición fue exitosa,
+     * false en caso contrario.
+     */
     public boolean editarRutina(int id, Rutina rutina) {
         String sql = "UPDATE rutinas SET nombre=?, activa=?, tipo=?, "
                 + "hora_inicio=?, dias_semana=?, categoria=?, nivel=? "
@@ -207,7 +248,14 @@ public class RutinaDAO {
             return false;
         }
     }
-
+    
+    /**
+     * Elimina una rutina de la base de datos.
+     *
+     * @param id identificador de la rutina a eliminar.
+     * @return true si la eliminación fue exitosa,
+     * false en caso contrario.
+     */
     public boolean eliminarRutina(int id) {
         String sql = "DELETE FROM rutinas WHERE id=?";
         try (Connection conn = ConexionDB.conectar(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -218,7 +266,13 @@ public class RutinaDAO {
             return false;
         }
     }
-
+    /**
+     * Obtiene todos los pasos asociados
+     * a una rutina específica.
+     *
+     * @param rutinaId identificador de la rutina.
+     * @return lista de pasos pertenecientes a la rutina.
+     */
     private ArrayList<Paso> obtenerPasos(int rutinaId) {
 
         ArrayList<Paso> pasos = new ArrayList<>();
@@ -255,7 +309,15 @@ public class RutinaDAO {
 
         return pasos;
     }
-
+    
+    /**
+     * Convierte un arreglo de días de la semana
+     * en una cadena separada por comas
+     * para almacenarla en la base de datos.
+     *
+     * @param dias arreglo de días de la semana.
+     * @return cadena con los días separados por comas.
+     */
     private String diasArrayToString(DayOfWeek[] dias) {
         if (dias == null || dias.length == 0) {
             return "";
@@ -269,7 +331,14 @@ public class RutinaDAO {
         }
         return sb.toString();
     }
-
+    
+    /**
+     * Convierte una cadena de texto con días separados
+     * por comas en un arreglo de DayOfWeek.
+     *
+     * @param diasStr cadena con los días separados por comas.
+     * @return arreglo de días de la semana.
+     */
     private DayOfWeek[] stringToDiasArray(String diasStr) {
         if (diasStr == null || diasStr.isEmpty()) {
             return new DayOfWeek[]{};
