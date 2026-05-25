@@ -15,14 +15,29 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
 public class ModeloAgendaTest {
-     @Test
+
+    private RutinaPersonalizada crearRutina(
+            String nombre,
+            String categoria,
+            int nivel
+    ) {
+
+        return new RutinaPersonalizada(
+                nombre,
+                categoria,
+                nivel,
+                LocalTime.of(8, 0),
+                new DayOfWeek[]{DayOfWeek.MONDAY}
+        );
+    }
+
+    @Test
     public void testAgregarRutina() {
 
         ModeloAgenda agenda = new ModeloAgenda();
 
-        Rutina rutina = new RutinaPersonalizada(
+        Rutina rutina = crearRutina(
                 "Ejercicio",
                 "Salud",
                 3
@@ -32,13 +47,13 @@ public class ModeloAgendaTest {
 
         assertEquals(1, agenda.getRutinas().size());
     }
-    
-     @Test
+
+    @Test
     public void testEliminarRutina() {
 
         ModeloAgenda agenda = new ModeloAgenda();
 
-        Rutina rutina = new RutinaPersonalizada(
+        Rutina rutina = crearRutina(
                 "Lectura",
                 "Estudio",
                 2
@@ -50,13 +65,13 @@ public class ModeloAgendaTest {
 
         assertEquals(0, agenda.getRutinas().size());
     }
-    
-     @Test
+
+    @Test
     public void testBuscarRutina() {
 
         ModeloAgenda agenda = new ModeloAgenda();
 
-        Rutina rutina = new RutinaPersonalizada(
+        Rutina rutina = crearRutina(
                 "Meditación",
                 "Bienestar",
                 1
@@ -67,22 +82,24 @@ public class ModeloAgendaTest {
         Rutina encontrada = agenda.buscar("Meditación");
 
         assertNotNull(encontrada);
-        assertEquals("Meditación", encontrada.getNombre());
+        assertEquals(
+                "Meditación",
+                encontrada.getNombre()
+        );
     }
-    
-    
+
     @Test
     public void testContarRutinasActivas() {
 
         ModeloAgenda agenda = new ModeloAgenda();
 
-        Rutina r1 = new RutinaPersonalizada(
+        Rutina r1 = crearRutina(
                 "Yoga",
                 "Salud",
                 2
         );
 
-        Rutina r2 = new RutinaPersonalizada(
+        Rutina r2 = crearRutina(
                 "Programar",
                 "Estudio",
                 5
@@ -93,22 +110,24 @@ public class ModeloAgendaTest {
         agenda.agregar(r1);
         agenda.agregar(r2);
 
-        assertEquals(1, agenda.contarActivas());
+        assertEquals(
+                1,
+                agenda.contarActivas()
+        );
     }
-    
-    
-     @Test
+
+    @Test
     public void testOrdenarPorNombre() {
 
         ModeloAgenda agenda = new ModeloAgenda();
 
-        Rutina r1 = new RutinaPersonalizada(
+        Rutina r1 = crearRutina(
                 "Zumba",
                 "Ejercicio",
                 2
         );
 
-        Rutina r2 = new RutinaPersonalizada(
+        Rutina r2 = crearRutina(
                 "Ajedrez",
                 "Mental",
                 1
@@ -124,8 +143,8 @@ public class ModeloAgendaTest {
                 agenda.getRutinas().get(0).getNombre()
         );
     }
-    
-     @Test
+
+    @Test
     public void testRutinaDiaria() {
 
         DayOfWeek[] dias = {
@@ -139,8 +158,14 @@ public class ModeloAgendaTest {
                 "Despertar"
         );
 
-        assertEquals("Diaria", rutina.getTipo());
-        assertEquals("Despertar", rutina.getNombre());
+        assertEquals(
+                "Diaria",
+                rutina.getTipo()
+        );
+
+        assertEquals(
+                "Despertar",
+                rutina.getNombre()
+        );
     }
-    
 }
