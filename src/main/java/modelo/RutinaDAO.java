@@ -37,8 +37,9 @@ public class RutinaDAO {
                 pstmt.setNull(6, java.sql.Types.VARCHAR);
                 pstmt.setNull(7, java.sql.Types.INTEGER);
             } else if (rutina instanceof RutinaPersonalizada rp) {
-                pstmt.setNull(4, java.sql.Types.VARCHAR);
-                pstmt.setNull(5, java.sql.Types.VARCHAR);
+
+                pstmt.setString(4,rp.getHoraInicio().format(TIME_FORMATTER));
+                pstmt.setString(5,diasArrayToString(rp.getDias()));
                 pstmt.setString(6, rp.getCategoria());
                 pstmt.setInt(7, rp.getNivel());
             } else {
@@ -148,9 +149,19 @@ public class RutinaDAO {
                     DayOfWeek[] dias = stringToDiasArray(rs.getString("dias_semana"));
                     rutina = new RutinaDiaria(horaInicio, dias, nombre);
                 } else if ("Personalizada".equals(tipo)) {
+
                     String categoria = rs.getString("categoria");
                     int nivel = rs.getInt("nivel");
-                    rutina = new RutinaPersonalizada(nombre, categoria, nivel);
+
+                    String horaStr = rs.getString("hora_inicio");
+
+                    LocalTime horaInicio = (horaStr != null)
+                            ? LocalTime.parse(horaStr)
+                            : LocalTime.NOON;
+
+                    DayOfWeek[] dias = stringToDiasArray(rs.getString("dias_semana"));
+
+                    rutina = new RutinaPersonalizada(nombre, categoria, nivel, horaInicio, dias);
                 }
 
                 if (rutina != null) {
@@ -183,8 +194,8 @@ public class RutinaDAO {
                 pstmt.setNull(6, java.sql.Types.VARCHAR);
                 pstmt.setNull(7, java.sql.Types.INTEGER);
             } else if (rutina instanceof RutinaPersonalizada rp) {
-                pstmt.setNull(4, java.sql.Types.VARCHAR);
-                pstmt.setNull(5, java.sql.Types.VARCHAR);
+                pstmt.setString(4, rp.getHoraInicio().format(TIME_FORMATTER));
+                pstmt.setString(5, diasArrayToString(rp.getDias()));
                 pstmt.setString(6, rp.getCategoria());
                 pstmt.setInt(7, rp.getNivel());
             }
