@@ -9,11 +9,25 @@ import java.io.PrintWriter;
 import java.time.DayOfWeek;
 
 /**
- *
- * @author crstc
+ * Clase utilitaria encargada de almacenar información
+ * de las rutinas en un archivo de texto.
+ * 
+ * Permite exportar los datos de una rutina al archivo
+ * {@code rutinas.txt}, incluyendo información general
+ * y características específicas según el tipo de rutina.
  */
 public class ArchivoTexto {
-    
+     /**
+     * Guarda la información de una rutina en un archivo
+     * de texto llamado {@code rutinas.txt}.
+     * 
+     * El archivo almacena datos generales como el ID,
+     * nombre y tipo de rutina. Si la rutina es diaria
+     * o personalizada, también se registran datos
+     * específicos como hora, días, categoría y nivel.
+     *
+     * @param rutina Rutina que será almacenada en el archivo.
+     */
     public static void guardarRutinaTXT(Rutina rutina) {
 
         try (FileWriter fw = new FileWriter("rutinas.txt", true);
