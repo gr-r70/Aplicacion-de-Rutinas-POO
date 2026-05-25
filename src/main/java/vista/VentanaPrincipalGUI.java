@@ -32,13 +32,13 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
             System.out.println("Error al iniciar TTS: " + e.getMessage());
         }
 
-        IServicioTTS servicioTTS = new ServicioTTS("es-");
-        ServicioRecordatorio recordatorio = new ServicioRecordatorio(modelo, servicioTTS);
+        ServicioRecordatorio recordatorio = new ServicioRecordatorio(modelo, tts);
         recordatorio.iniciar();
 
         controlador.cargarDesdeBD();
         configurarEventos();
         actualizarTabla();
+        actualizarCamposTipo();
     }
 
     private void configurarEventos() {
@@ -69,6 +69,38 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
                 actualizarLabelEstado(r);
             }
         });
+        comboTipo.addActionListener(e -> actualizarCamposVisibles());
+        actualizarCamposVisibles();
+    }
+
+    private void actualizarCamposTipo() {
+
+        boolean esPersonalizada
+                = comboTipo.getSelectedItem()
+                        .equals("Personalizada");
+
+        lblCategoria.setVisible(esPersonalizada);
+        txtCategoria.setVisible(esPersonalizada);
+
+        lblNivel.setVisible(esPersonalizada);
+        txtNivel.setVisible(esPersonalizada);
+
+        lblHora.setVisible(!esPersonalizada);
+        txtHora.setVisible(!esPersonalizada);
+
+        lblDia.setVisible(!esPersonalizada);
+        comboDia.setVisible(!esPersonalizada);
+    }
+
+    private void actualizarCamposVisibles() {
+
+        boolean esPersonalizada = comboTipo.getSelectedItem().equals("Personalizada");
+
+        lblCategoria.setVisible(esPersonalizada);
+        txtCategoria.setVisible(esPersonalizada);
+
+        lblNivel.setVisible(esPersonalizada);
+        txtNivel.setVisible(esPersonalizada);
     }
 
     private void actualizarLabelEstado(Rutina r) {
@@ -155,8 +187,28 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
             Rutina nueva;
 
             if (tipo.equals("Diaria")) {
-                nueva = new RutinaDiaria(LocalTime.now(),
-                        new DayOfWeek[]{DayOfWeek.MONDAY}, nombre);
+                String horaTexto = txtHora.getText();
+                String diaTexto = comboDia.getSelectedItem().toString();
+                LocalTime hora = LocalTime.parse(horaTexto);
+                DayOfWeek dia = switch (diaTexto) {
+                    case "Lunes" ->
+                        DayOfWeek.MONDAY;
+                    case "Martes" ->
+                        DayOfWeek.TUESDAY;
+                    case "Miércoles" ->
+                        DayOfWeek.WEDNESDAY;
+                    case "Jueves" ->
+                        DayOfWeek.THURSDAY;
+                    case "Viernes" ->
+                        DayOfWeek.FRIDAY;
+                    case "Sábado" ->
+                        DayOfWeek.SATURDAY;
+                    default ->
+                        DayOfWeek.SUNDAY;
+                };
+
+                nueva = new RutinaDiaria(hora, new DayOfWeek[]{dia}, nombre);
+
             } else {
                 nueva = new RutinaPersonalizada(nombre, categoria, nivel);
             }
@@ -202,12 +254,38 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
     private void actualizarTabla() {
         modeloTabla.setRowCount(0);
         for (Rutina r : modelo.getRutinas()) {
-            String cat = "-", niv = "-", hora = "-";
+            String cat = "-", niv = "-", hora = "-", dia = "-";
             if (r instanceof RutinaPersonalizada rp) {
                 cat = rp.getCategoria();
                 niv = String.valueOf(rp.getNivel());
             } else if (r instanceof RutinaDiaria rd) {
-                hora = rd.getHoraInicio().toString();
+
+                hora = rd.getHoraInicio()
+                        .toString()
+                        .substring(0, 5);
+
+                if (rd.getDias().length > 0) {
+
+                    DayOfWeek d = rd.getDias()[0];
+
+                    dia = switch (d) {
+
+                        case MONDAY ->
+                            "Lunes";
+                        case TUESDAY ->
+                            "Martes";
+                        case WEDNESDAY ->
+                            "Miércoles";
+                        case THURSDAY ->
+                            "Jueves";
+                        case FRIDAY ->
+                            "Viernes";
+                        case SATURDAY ->
+                            "Sábado";
+                        default ->
+                            "Domingo";
+                    };
+                }
             }
 
             modeloTabla.addRow(new Object[]{
@@ -217,6 +295,7 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
                 cat,
                 niv,
                 hora,
+                dia,
                 r.isActiva() ? "Activa" : "Inactiva"
             });
         }
@@ -253,6 +332,10 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
         lblNivel = new javax.swing.JLabel();
         txtNivel = new javax.swing.JTextField();
         btnAgregarPaso = new javax.swing.JButton();
+        txtHora = new javax.swing.JTextField();
+        lblHora = new javax.swing.JLabel();
+        comboDia = new javax.swing.JComboBox<>();
+        lblDia = new javax.swing.JLabel();
         panelCentral = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         tablaRutinas = new javax.swing.JTable();
@@ -301,7 +384,7 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
                     .addGroup(panelSuperiorLayout.createSequentialGroup()
                         .addGap(23, 23, 23)
                         .addComponent(lblEstadoPasos, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 420, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 421, Short.MAX_VALUE)
                 .addGroup(panelSuperiorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnDetener, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(btnAnterior, javax.swing.GroupLayout.Alignment.TRAILING))
@@ -372,6 +455,18 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
         btnAgregarPaso.setText("Agregar Paso");
         btnAgregarPaso.setName("btnEliminar"); // NOI18N
 
+        txtHora.setText("08:00");
+        txtHora.setName("txtNivel"); // NOI18N
+
+        lblHora.setText("Hora:");
+        lblHora.setName("lblNivel"); // NOI18N
+
+        comboDia.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" }));
+        comboDia.setPreferredSize(new java.awt.Dimension(64, 22));
+
+        lblDia.setText("Dia:");
+        lblDia.setName("lblNivel"); // NOI18N
+
         javax.swing.GroupLayout panelMenuLayout = new javax.swing.GroupLayout(panelMenu);
         panelMenu.setLayout(panelMenuLayout);
         panelMenuLayout.setHorizontalGroup(
@@ -394,13 +489,17 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
                             .addComponent(lblNivel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(lblCategoria, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(lblTipo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblNombre, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(lblNombre, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblHora, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblDia, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(panelMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(txtHora, javax.swing.GroupLayout.DEFAULT_SIZE, 122, Short.MAX_VALUE)
                             .addComponent(txtNombre)
                             .addComponent(comboTipo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(txtCategoria)
-                            .addComponent(txtNivel, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(txtNivel, javax.swing.GroupLayout.DEFAULT_SIZE, 122, Short.MAX_VALUE)
+                            .addComponent(comboDia, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap(35, Short.MAX_VALUE))
         );
         panelMenuLayout.setVerticalGroup(
@@ -430,7 +529,15 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
                 .addGroup(panelMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblNivel)
                     .addComponent(txtNivel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                .addGap(18, 18, 18)
+                .addGroup(panelMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtHora, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblHora))
+                .addGap(28, 28, 28)
+                .addGroup(panelMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(comboDia, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblDia))
+                .addContainerGap(113, Short.MAX_VALUE))
         );
 
         getContentPane().add(panelMenu, java.awt.BorderLayout.LINE_START);
@@ -443,7 +550,7 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
 
             },
             new String [] {
-                "ID", "Nombre", "Tipo", "Categoria", "Nivel", "Hora", "Estado"
+                "ID", "Nombre", "Tipo", "Categoria", "Nivel", "Hora", "Dia", "Estado"
             }
         ));
         tablaRutinas.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
@@ -464,8 +571,8 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
             panelCentralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelCentralLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 316, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(29, Short.MAX_VALUE))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 448, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(66, Short.MAX_VALUE))
         );
 
         getContentPane().add(panelCentral, java.awt.BorderLayout.CENTER);
@@ -518,12 +625,15 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
     private javax.swing.JButton btnGuardar;
     private javax.swing.JButton btnLeer;
     private javax.swing.JButton btnSiguiente;
+    private javax.swing.JComboBox<String> comboDia;
     private javax.swing.JComboBox<String> comboTipo;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable jTable1;
     private javax.swing.JLabel lblCategoria;
+    private javax.swing.JLabel lblDia;
     private javax.swing.JLabel lblEstadoPasos;
+    private javax.swing.JLabel lblHora;
     private javax.swing.JLabel lblMenu;
     private javax.swing.JLabel lblNivel;
     private javax.swing.JLabel lblNombre;
@@ -534,6 +644,7 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
     private javax.swing.JPanel panelSuperior;
     private javax.swing.JTable tablaRutinas;
     private javax.swing.JTextField txtCategoria;
+    private javax.swing.JTextField txtHora;
     private javax.swing.JTextField txtNivel;
     private javax.swing.JTextField txtNombre;
     // End of variables declaration//GEN-END:variables
