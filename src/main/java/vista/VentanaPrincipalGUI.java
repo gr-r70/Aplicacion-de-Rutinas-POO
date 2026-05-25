@@ -187,39 +187,52 @@ public class VentanaPrincipalGUI extends javax.swing.JFrame {
         try {
 
             int nivel = nivelStr.isBlank()
-                    ? 1
-                    : Integer.parseInt(nivelStr);
-
+                    ? 1   : Integer.parseInt(nivelStr);
             String horaTexto = txtHora.getText();
             String diaTexto = comboDia.getSelectedItem().toString();
+            if (!horaTexto.matches("^\\d{2}:\\d{2}$")) {
+                JOptionPane.showMessageDialog(this, "La hora debe tener formato HH:mm");
+                return;
+            }
 
             LocalTime hora = LocalTime.parse(horaTexto);
 
             DayOfWeek dia = switch (diaTexto) {
-                case "Lunes" ->DayOfWeek.MONDAY;
-                case "Martes" ->DayOfWeek.TUESDAY;
-                case "Miércoles" ->DayOfWeek.WEDNESDAY;
-                case "Jueves" ->DayOfWeek.THURSDAY;
-                case "Viernes" ->DayOfWeek.FRIDAY;
-                case "Sábado" ->DayOfWeek.SATURDAY;
-                default ->DayOfWeek.SUNDAY;
+                case "Lunes" ->
+                    DayOfWeek.MONDAY;
+                case "Martes" ->
+                    DayOfWeek.TUESDAY;
+                case "Miércoles" ->
+                    DayOfWeek.WEDNESDAY;
+                case "Jueves" ->
+                    DayOfWeek.THURSDAY;
+                case "Viernes" ->
+                    DayOfWeek.FRIDAY;
+                case "Sábado" ->
+                    DayOfWeek.SATURDAY;
+                default ->
+                    DayOfWeek.SUNDAY;
             };
 
             Rutina nueva;
 
             if (tipo.equals("Diaria")) {
 
-                nueva = new RutinaDiaria(hora,new DayOfWeek[]{dia},nombre);
+                nueva = new RutinaDiaria(hora, new DayOfWeek[]{dia}, nombre);
 
             } else {
 
-                nueva = new RutinaPersonalizada( nombre,categoria, nivel,hora,new DayOfWeek[]{dia});
+                nueva = new RutinaPersonalizada(nombre, categoria, nivel, hora, new DayOfWeek[]{dia});
             }
 
             if (controlador.agregarRutina(nueva)) {
+                
+                ArchivoTexto.guardarRutinaTXT(nueva);
 
                 actualizarTabla();
 
+                
+                
                 JOptionPane.showMessageDialog(this,
                         "¡Guardado con éxito!");
 
